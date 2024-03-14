@@ -1,13 +1,13 @@
 # Filename: fairness_example.R
 # Author: Juha Karvanen
-# Date: 2023-06-10 (updated 2024-03-14)
+# Date: 2024-03-14
 # Description: Reproduces the example in Section 5 of paper
-# J. Karvanen, S. Tikka, M. Vihola (2023) Simulating counterfactuals. 
+# J. Karvanen, S. Tikka, M. Vihola (2023) Simulating counterfactuals, 
 # arXiv:2306.15328, https://arxiv.org/pdf/2306.15328
 
-install.packages("R6causal_0.8.0.tar.gz", repos = NULL, type = "source")
+
 library(R6causal)
-stopifnot(packageVersion("R6causal")=="0.8.0")
+stopifnot(packageVersion("R6causal")>="0.8.3")
 library(data.table)
 #devtools::install_github("https://github.com/dmlc/xgboost/", subdir="R-package")
 library(xgboost)
@@ -209,43 +209,45 @@ newdata <- credit$simulate(n=1000, return_simdata = TRUE)
 
 vnames <- credit$vnames
 modellist <- list(xgba_predict,xgbb_predict,xgbc_predict) 
-results <- matrix(NA, nrow = nrow(newdata), ncol = length(modellist))
+fairresults <- matrix(NA, nrow = nrow(newdata), ncol = length(modellist))
 for(i in 1:nrow(newdata)) {
   cat(i,date(),"\n")
   fairlist <- try(fairness( modellist = modellist,
            scm = credit, 
            sensitive = c("gender","ethnicity"),
            condition = newdata[i,..vnames], 
+           condition_type = list(age = "cont", 
+                                 ethnicity = "disc", 
+                                 marital = "disc", 
+                                 gender = "disc", 
+                                 education = "disc",
+                                 children = "disc",
+                                 job = "disc",
+                                 income = "cont",
+                                 housing = "disc",
+                                 address = "disc",
+                                 savings = "cont",
+                                 credit_history = "disc",
+                                 length_of_employment = "cont",
+                                 credit_amount = "cont",
+                                 default = "disc"
+           ),
            parents = setdiff(credit$pa("default",includeself = FALSE),
                              union( c("gender","ethnicity"), credit$unames)),
            n = 1000,
            modeltype = "function", 
-           control = list(method = "u_find",
-                          condition_type = list(age = "cont", 
-                                                ethnicity = "disc", 
-                                                marital = "disc", 
-                                                gender = "disc", 
-                                                education = "disc",
-                                                children = "disc",
-                                                job = "disc",
-                                                income = "cont",
-                                                housing = "disc",
-                                                address = "disc",
-                                                savings = "cont",
-                                                credit_history = "disc",
-                                                length_of_employment = "cont",
-                                                credit_amount = "cont",
-                                                default = "disc"
-                          ))
+           method = "u_find",
+           control = list(batchsize = 1000,
+                          maxbatchs = 10000)
   ))
   if(!inherits(fairlist, "try-error")) {
     for(j in 1:length(modellist)) {
-      results[i,j] <- max(apply(fairlist[[j]],1,max) - apply(fairlist[[j]],1,min))
+      fairresults[i,j] <- max(apply(fairlist[[j]],1,max) - apply(fairlist[[j]],1,min))
     }
   }
 }
 
-#save(results, xgba, xgbb, xgbc, file = "credit_scoring_results.Rdata")
+#save(fairresults, xgba, xgbb, xgbc, file = "credit_scoring_results_20240314.Rdata")
 
 latextable<-function(td) {
   tddim<-dim(td);
@@ -262,18 +264,17 @@ latextable<-function(td) {
 } 
 
 restable <- rbind(
-  apply(results,2,function(x) mean(x==0)),
-  apply(results,2,function(x) mean(x<0.01)),
-  apply(results,2,median),
-  apply(results,2,max)
-  )
+  apply(fairresults,2,function(x) mean(x==0, na.rm = TRUE)),
+  apply(fairresults,2,function(x) mean(x<0.01, na.rm = TRUE)),
+  apply(fairresults,2,median, na.rm = T),
+  apply(fairresults,2,max, na.rm = T)
+)
 
 restablet <- rbind(
-  c("Fairness %",formatC(100*apply(results,2,function(x) mean(x==0)), digits=0, format = "f")),
-  c("Difference <0.01 %",formatC(100*apply(results,2,function(x) mean(x<0.01)), digits=0, format = "f")),
-  c("Median difference",formatC(apply(results,2,median), digits=5, format = "f")),
-  c("Maximum difference",formatC(apply(results,2,max), digits=2, format = "f"))
+  c("Fairness %",formatC(100*apply(fairresults,2,function(x) mean(x==0, na.rm = TRUE)), digits=0, format = "f")),
+  c("Difference <0.01 %",formatC(100*apply(fairresults,2,function(x) mean(x<0.01, na.rm = TRUE)), digits=0, format = "f")),
+  c("Median difference",formatC(apply(fairresults,2,median, na.rm = TRUE), digits=5, format = "f")),
+  c("Maximum difference",formatC(apply(fairresults,2,max, na.rm = TRUE), digits=2, format = "f"))
 )
 latextable(restablet)
-
 

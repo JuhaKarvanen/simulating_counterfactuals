@@ -1,30 +1,29 @@
 # Filename: linear_Gaussian_run.R
 # Author: Juha Karvanen
-# Date: 2023-06-10 (updated 2024-03-14)
+# Date: 2024-03-14
 # Usage: This code is meant to be run via linear_Gaussian_run.bash. Modifications
 # may be needed depending on the system. The current settings are for csc.fi.
 # Description: Code to reproduce the simulation experiment in Section 4 of paper
 # J. Karvanen, S. Tikka, M. Vihola (2023) Simulating counterfactuals. 
-# arXiv:2306.15328, https://arxiv.org/pdf/2306.15328
+# # arXiv:2306.15328, https://arxiv.org/pdf/2306.15328
 
 
-sink(file="linear_Gaussian_run.log")
+#sink(file="linear_Gaussian_run.log")
 
 # Next two lines are user specific and not needed in general
-.libPaths(c(.libPaths(),"/projappl/jkarvane/r_packages_singularity"))
-.libPaths(c("/projappl/jkarvane", .libPaths()))
+# .libPaths(c(.libPaths(),"/projappl/jkarvane/r_packages_singularity"))
+# .libPaths(c("/projappl/jkarvane", .libPaths()))
 
 library(data.table)
 library(MASS)
 library(psych)
-install.packages("R6causal_0.8.0.tar.gz", repos = NULL, type = "source")
 library(R6causal) 
-stopifnot(packageVersion("R6causal")=="0.8.0")
+stopifnot(packageVersion("R6causal")>="0.8.3")
 
-source("linear_Gaussian_setup.R")
+source("github/linear_Gaussian_setup.R")
 
-args <- commandArgs(trailingOnly = TRUE)
-seed <- 101062023 + as.numeric(args[1])
+#args <- commandArgs(trailingOnly = TRUE)
+seed <- 101062023 #+ as.numeric(args[1])
 
 nsim <- 1
 simid <- 1:nsim
@@ -54,17 +53,18 @@ results <- subset(results, (ssize %in% c(1000,10000,100000,1000000) &
                                  (nv == 50 & ncond == 9 &  avgneighbors == 7 & avgu2 == 1) ))
 )
 
-sfile <- paste0("~/simulating_counterfactuals/data/linear_Gaussian_result_", as.character(args[1]) ,".Rdata")
+#sfile <- paste0("~/simulating_counterfactuals/data/linear_Gaussian_result_", as.character(args[1]) ,".Rdata")
+sfile <- "linear_Gaussian_localtest_result.Rdata"
 
-reps <- 10
+reps <- 2
 result <- simulate(reps = reps, seed = seed, simsettings = simsettings, 
                    results = results[ rep(1:nrow(results), reps), ],
                    savefile = sfile)
 
 
-save(result, file = sfile)
+#save(result, file = sfile)
 
-sink()
+#sink()
 
 
 
