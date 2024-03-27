@@ -1,13 +1,12 @@
 # Filename: linear_Gaussian_setup.R
 # Author: Juha Karvanen
-# Date: 2023-06-10 (updated 2024-03-14)
+# Date: 2024-03-14
 # Usage: sourced by linear_Gaussian_run.R
 # Description: Functions needed to reproduce the simulation experiment in Section 4 of paper
 # J. Karvanen, S. Tikka, M. Vihola (2023) Simulating counterfactuals. 
-# arXiv:2306.15328, https://arxiv.org/pdf/2306.15328
+# # arXiv:2306.15328, https://arxiv.org/pdf/2306.15328
 
-
-stopifnot(packageVersion("R6causal")=="0.8.0")
+stopifnot(packageVersion("R6causal")>="0.8.3")
 
 standardize <- function(x, mean = 0, sd = 1) {
   return((x - mean) / sd) 
@@ -90,8 +89,8 @@ simulate <- function(reps, seed, simsettings, results = NULL, lglist = NULL,
       results$nofreev[j] <- TRUE 
       next
     }
-    condition_type <- rep("cont", ncond)
-    names(condition_type) <- lg$vnames[1:ncond]
+    situation$condition_type <- rep("cont", ncond)
+    names(situation$condition_type) <- lg$vnames[1:ncond]
     tested_freevnames1 <- tested_freevnames[1]
     results$truemean[j] <- trueparam$mu[tested_freevnames1,,drop=FALSE]
     results$truesd[j] <- sqrt(diag(trueparam$sigma)[tested_freevnames1,drop=FALSE])
@@ -103,9 +102,10 @@ simulate <- function(reps, seed, simsettings, results = NULL, lglist = NULL,
     cfsim <-  try(counterfactual(lg,
                                  situation,
                                  n = n,
+                                 method="u_find",
                                  control = list(
-                                   method="u_find",
-                                   condition_type = condition_type,
+                                   # method="u_find",
+                                   # condition_type = condition_type,
                                    max_iterations = 50,
                                    sampling_replace = TRUE,
                                    batchsize = n

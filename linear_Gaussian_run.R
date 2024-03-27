@@ -1,11 +1,11 @@
 # Filename: linear_Gaussian_run.R
 # Author: Juha Karvanen
-# Date: 2023-06-10 (updated 2024-03-14)
+# Date: 2024-03-14
 # Usage: This code is meant to be run via linear_Gaussian_run.bash. Modifications
 # may be needed depending on the system. The current settings are for csc.fi.
 # Description: Code to reproduce the simulation experiment in Section 4 of paper
 # J. Karvanen, S. Tikka, M. Vihola (2023) Simulating counterfactuals. 
-# arXiv:2306.15328, https://arxiv.org/pdf/2306.15328
+# # arXiv:2306.15328, https://arxiv.org/pdf/2306.15328
 
 
 sink(file="linear_Gaussian_run.log")
@@ -17,9 +17,8 @@ sink(file="linear_Gaussian_run.log")
 library(data.table)
 library(MASS)
 library(psych)
-install.packages("R6causal_0.8.0.tar.gz", repos = NULL, type = "source")
 library(R6causal) 
-stopifnot(packageVersion("R6causal")=="0.8.0")
+stopifnot(packageVersion("R6causal")>="0.8.3")
 
 source("linear_Gaussian_setup.R")
 
