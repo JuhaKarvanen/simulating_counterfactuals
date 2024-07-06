@@ -1,6 +1,7 @@
 # simulating_counterfactuals
 
-R code for the paper J. Karvanen, S. Tikka, M. Vihola (2023) Simulating counterfactuals. [arXiv:2306.15328](https://arxiv.org/abs/2306.15328)
+R code for the paper J. Karvanen, S. Tikka, M. Vihola (2024) Simulating counterfactuals. Journal of Artificial Intelligence Research, 80, 835-857.
+[https://doi.org/10.1613/jair.1.15579]
 
 Files:
 - linear_Gaussian_setup.R, Setting up the simulation with linear Gaussian models (Section 4 in the paper)
